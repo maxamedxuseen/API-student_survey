@@ -1,0 +1,121 @@
+const express = require("express");
+const mysql = require("mysql");
+const bodyParser = require("body-parser")
+const conn = require("./connection");
+const router = express.Router();
+router.use(bodyParser.urlencoded({extended:false}))
+
+router.use(bodyParser.json())
+
+
+
+router.get("/",(rep,res)=>{
+
+  conn.query('SELECT * FROM super_user', function (error, results, fields) {
+    // Handle errors
+    if (error) throw error;
+
+    // Send the results as a JSON response
+    res.send(JSON.stringify(results));
+  });
+  
+})
+// Get by Id
+router.get("/:id",(rep,res)=>{
+
+  conn.query('SELECT * FROM super_user WHERE id = ?', [rep.params.id], function (error, results, fields) {
+    // Handle errors
+    if (error) throw error;
+
+    // Send the results as a JSON response
+    res.send(JSON.stringify(results));
+  });
+})
+
+
+// delete by ID
+router.delete("/:id",(rep,res)=>{
+
+  conn.query('SELECT * FROM super_user WHERE id = ?', [rep.params.id], function (error, results, fields) {
+    // Handle errors
+    if (error) throw error;
+    console.log(results);
+    if(results.length > 0){
+
+      conn.query('DELETE FROM `super_user` WHERE id = ?', [rep.params.id], function (error, result, fields) {
+        // Handle errors
+        if (error) throw error;
+    
+        // Send the results as a JSON response
+        res.send(JSON.stringify(Res_code(200,"Deleted successfully")));
+      });
+      
+    }else{
+      res.send(JSON.stringify(Res_code(400,"that does not exist")))
+    }
+    
+  });
+ 
+})
+// Add new record
+// Get by Id
+router.post("/",(req,res)=>{
+const emp = req.body
+  conn.query('INSERT INTO super_user SET ?',emp , function (error, results, fields) {
+    // Handle errors
+    if (error) {
+      Res_code(200,'Something went wrong')
+      console.log(error);
+    }
+
+    // Send the results as a JSON response
+    res.send(JSON.stringify(Res_code(200,`it has been added`)));
+  });
+})
+
+
+// Update ---
+router.put("/:id",(rep,res)=>{
+
+    conn.query('UPDATE super_user SET ? WHERE id = ?', [rep.body,rep.params.id], function (error, results, fields) {
+      // Handle errors
+      if (error) throw error;
+  
+      // Send the results as a JSON response
+      res.send(JSON.stringify(Res_code(200,"it has been updated")));
+    });
+  })
+
+  router.get("/login/:username/:password",(rep,res)=>{
+
+    conn.query('SELECT * FROM super_user e where e.username = ? and e.password = ?',[rep.params.username,rep.params.password] , function (error, results, fields) {
+      // Handle errors
+
+      if (error) throw error;
+      // Send the results as a JSON 
+    
+      if(results.length >0){
+        res.send(JSON.stringify(results));
+      }else{
+        res.send(Res_code(300,"no user in found"))
+        console.log("user :"+rep.params.username+"\npass :"+rep.params.password);
+      }
+      
+      
+    });
+  })
+
+
+
+
+function Res_code(code,massage){
+  let result = {
+    "status":code,
+    "massage":massage
+  }
+
+  return result;
+}
+
+
+module.exports = router;
